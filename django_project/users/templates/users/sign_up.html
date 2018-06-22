@@ -1,0 +1,44 @@
+{% extends 'users/base.html' %}
+
+{% block body %}
+
+{% if empty or info_duplicated or invalid_format%}
+    <div class="alert alert-info text-center" role="alert"  >
+        {{ error }}
+    </div>
+{% endif %}
+
+<div class = 'container' >
+    <div class="row">
+        <div class=" col-8  offset-2">
+            <div style="height: 100vh; overflow-y: hidden; display: flex; justify-content: center; align-items: center;">
+                <div class="card bg-dark text-white " style="width: 100%;">
+                  <div class="card-body">
+                      <h4 class="card-title">Sign Up</h4>
+                      <form action="{% url 'users:sign_up'%}" method="post">
+                          {% csrf_token %}
+                          <div class="form-group">
+                              <label for="InputUsername">User_name</label>
+                              <input type="text" class="form-control" name="Username" placeholder="No longer than 20 characters" value={{ user_name }}>
+                          </div>
+                          <div class="form-group">
+                              <label for="InputPassword">Password</label>
+                              <input type="password" class="form-control" name="Password" placeholder="No shorter than 6 characters" value={{ password }}>
+                          </div>
+                          <div class="form-group">
+                              <label for="InputEmail">Email address</label>
+                              <input type="email" class="form-control" name="Email" aria-describedby="emailHelp" placeholder="name@example.com" value={{ email_address }}>
+                              <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+                          </div>
+                          <button type="submit" class="btn btn-primary">Submit</button>
+                          <button type="reset" class="btn btn-primary"> Reset</button>
+                      </form>
+                  </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
