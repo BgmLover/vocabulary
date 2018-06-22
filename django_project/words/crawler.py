@@ -97,6 +97,7 @@ def save_words(book_name):
         sentence = english_sentence + '<br>' + chinese_sentence
 
         try:
+            # print(book_name)
             new_word = Words(
                 word=word,
                 pronunciation_e=pronunciation_e,
@@ -104,7 +105,7 @@ def save_words(book_name):
                 phonetic_symbol_e=phonetic_symbol_e,
                 phonetic_symbol_a=phonetic_symbol_a,
                 example_sentence=sentence,
-                book=book_name,
+                book_id=book_name,
                 meanings=meanings
             )
 
