@@ -78,3 +78,19 @@ def forget_one_word(user_name, word):
     query_set = UserRecitedBookWords.objects.filter(user=user_name, word=word)
     if query_set.exists():
         query_set.delete()
+
+
+def get_all_books():
+    books = Books.objects.all()
+    books_list = []
+    for book in books:
+        books_list.append(book.book_name)
+    return books_list
+
+
+def get_book_used(user_name):
+    query_set = UserBook.objects.filter(user=user_name, is_use=True)
+    if query_set.exists():
+        return query_set.get().book.book_name
+    else:
+        return ''
