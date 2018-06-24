@@ -1,15 +1,23 @@
 from django.shortcuts import render, redirect,reverse
-from .models import User,check_type
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login, logout
+from .models import check_type
 from django.http import HttpResponse, HttpResponseRedirect
-from django.utils import timezone
+from django.contrib.auth.decorators import login_required
 from django import db
+from django.apps import apps
+from words.models import UserBook, Books, UserWordsPlan
 
 
 def index(request):
+    if 'logged_in' in request.session and 'user_name' in request.session:
+        return redirect('users:index_login', request.session['user_name'])
     return render(request, 'users/index.html')
 
 
+@login_required
 def index_login(request, user_name):
+    print(request.user)
     message = {'logged_in': True, 'user_name': user_name}
     return render(request, 'users/index.html', message)
 
@@ -22,7 +30,6 @@ def sign_up(request):
         password = request.POST['Password']
         email_address = request.POST['Email']
         message = {'password': password, 'email_address': email_address, 'user_name': username}
-
         # to check if the user information is empty
         if username == '':
             message['empty'] = True
@@ -44,12 +51,20 @@ def sign_up(request):
             return render(request, 'users/sign_up.html', message)
         if check_type(password, email_address):
             try:
-                user = User(user_name=username, password=password,
-                            email_address=email_address, register_date=timezone.now())
+                user = User(username=username, email=email_address)
+                user.set_password(password)
                 user.save()
-                return redirect('users:sign_in')
+                books = Books.objects.all()
+                plan = UserWordsPlan(user=user)
+                plan.save()
+                for book in books:
+                    item = UserBook(user=user, book=book)
+                    item.save()
+                # create new user-book table
+                return redirect('users:index')
             # the user information is duplicated
             except db.IntegrityError as e:
+                print('shit')
                 cause = e.__cause__
                 message['info_duplicated'] = True
                 if cause.__str__().find('email_address') != -1:
@@ -67,30 +82,25 @@ def sign_in(request):
         return render(request, 'users/sign_in.html')
     if request.method == 'POST':
         password = request.POST['Password']
-        user_identifier = request.POST['User_identifier']
+        user_name = request.POST['User_identifier']
         message = {'logged_in': False, }
-
-        # to check if the information is stored in the database
-        if user_identifier.find('@') != -1:
-            result = User.objects.filter(email_address=user_identifier).filter(password=password)
-            if result.count() == 0:
-                message['error'] = True
-                return render(request, 'users/sign_in.html', message)
-            else:
-                message['logged_in'] = True
-                message['user_name'] = result.get(email_address=user_identifier).user_name
-                return redirect('users:index_login', user_name=message['user_name'])
+        usr = authenticate(request, username= user_name, password=password)
+        if usr is not None:
+            login(request, usr)
+            message['logged_in'] = True
+            message['user_name'] = user_name
+            request.session['user_name'] = user_name
+            request.session['logged_in'] = True
+            return redirect('users:index_login', user_name)
         else:
-            result = User.objects.filter(user_name=user_identifier).filter(password=password)
-            if result.count() == 0:
-                message['error'] = True
-                message['user_name'] = user_identifier
-                return render(request, 'users/sign_in.html', message)
-            else:
-                message['logged_in'] = True
-                return redirect('/'+user_identifier+'/index')
-                # print(reverse('users:index_login', args=(user_identifier,)))
-                # return HttpResponseRedirect(reverse('users:index_login', args=(user_identifier,)))
+            message['error'] = True
+            return render(request, 'users/sign_in.html', message)
+
+
+@login_required
+def sign_out(request):
+    logout(request)
+    return redirect('users:index')
 
 
 

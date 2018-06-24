@@ -1,5 +1,5 @@
 {% extends 'users/base.html' %}
-
+{% load static %}
 
 {% block body %}
      <!-- Navigation -->
@@ -32,40 +32,42 @@
     <header class="masthead">
       <div class="intro-body">
         <div class="container">
-          <div id="carouselExampleControls" class="carousel slide" data-ride="carousel" data-interval="false">
-              <div class="carousel-inner">
-                 <div class="carousel-item active row">
-                      <div class="card bg-dark col-sm-8 offset-sm-2">
-                          <div class="card-header">
-                              hello
-                          </div>
-                          <div class="card-body" >
-                            <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                              <p class="card-text">jasdflksdajfl</p>
-                          </div>
-                          <div class="card-footer">
-                              <a role="button" href="#carouselExampleControls" data-slide="next">
-                                  I get it
-                              </a>
-                          </div>
-                      </div>
-                 </div>
-                <div class="carousel-item ">
-                  <img class="d-block w-100" src=".../800x400?auto=yes&bg=666&fg=444&text=Second slide" alt="Second slide">
-                </div>
-                <div class="carousel-item">
-                  <img class="d-block w-100" src=".../800x400?auto=yes&bg=555&fg=333&text=Third slide" alt="Third slide">
-                </div>
-              </div>
-              <a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-slide="prev">
-                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                <span class="sr-only">Previous</span>
-              </a>
-              <a class="carousel-control-next" href="#carouselExampleControls" role="button" data-slide="next">
-                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                <span class="sr-only">Next</span>
-              </a>
+          <div class="card bg-dark col-sm-8 offset-sm-2">
+            <div class="card-header text-left">
+              <strong class="display-4 ">{{ now_word.word }}</strong> &nbsp;
+              <small >英:{{ now_word.phonetic_symbol_e }}</small>
+              <audio id="player_e" src={{ now_word.pronunciation_e }} ></audio>
+              <img  class="btn" onclick="document.getElementById('player_e').play()"  src={% static 'img/player.png' %}>
+              </img>
+              <small >美:{{ now_word.phonetic_symbol_a }}</small>
+              <audio id="player_a" src={{ now_word.pronunciation_a }} ></audio>
+              <img  class="btn" onclick="document.getElementById('player_a').play()"  src={% static 'img/player.png' %}>
+              </img>
             </div>
+            <div class="card-body collapse" id="word_content" >
+              {% for meaning in now_word.meanings %}
+                <div class="card-text text-left">{{ meaning }}</div>
+              {% endfor %}
+              <br>
+              {% for sentence in now_word.example_sentence %}
+                <div class="card-text text-left">{{ sentence }}</div>
+              {% endfor %}
+            </div>
+            <div class="card-footer ">
+              {% if can_show_content %}
+                <button class="btn-default" data-toggle="collapse" data-target="#word_content">Show the content</button>
+                <a class="btn-default" href="/{{ user_name }}/get_recite_next/">
+                  next
+                </a>
+              {% else %}
+                <form action="/{{ user_name }}/recite/" method="post" class="row">
+                {% csrf_token %}
+                  <input class="btn-outline-light col-4" type="submit" name="if_remember"  value="I know it">
+                  <input class="btn-outline-light col-4 offset-sm-4" type="submit" name="if_remember"  value="I don't know it">
+                </form>
+              {% endif %}
+            </div>
+          </div>
         </div>
       </div>
     </header>

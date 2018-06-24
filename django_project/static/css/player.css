@@ -1,0 +1,25 @@
+body {
+  background-color: #000000;
+}
+
+/* Give the player a height & width of 0. Otherwise the player is visible on mobile devices (tested on iPhone 5). */
+
+#player {
+  height: 0;
+  width: 0
+}
+
+/* Apologies for the large base64 image file */
+
+.speaker {
+  background-repeat: no-repeat;
+  background-size: 200%;
+  background-position: 100% 0;
+  height: 64px;
+  width: 60px;
+  cursor: pointer;
+}
+
+.speakerplay {
+  background-position: 0 0;
+}

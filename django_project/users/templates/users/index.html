@@ -22,7 +22,7 @@
                     <a class="nav-link js-scroll-trigger h6 " href="#" style="text-transform:none"> {{user_name }}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link js-scroll-trigger" href={% url 'users:index' %}>Log OUT</a>
+                    <a class="nav-link js-scroll-trigger" href={% url 'users:sign_out'%}>Log OUT</a>
                 </li>
             {% else %}
             <li class="nav-item " >
@@ -59,13 +59,13 @@
                         <a href="recite/" role="button" class="btn btn-outline-light  rounded btn-lg " style="text-transform: none;width: 100%; ">Review</a>
                     </div>
                     <div class="col-md-2" style="padding-right: 0.5%;padding-left: 0.5%">
-                        <a href="recite/" role="button" class="btn btn-outline-light  rounded btn-lg" style="text-transform: none;width: 100%">Take an exam</a>
+                        <a href="recite/" role="button" class="btn btn-outline-light  rounded btn-lg" style="text-transform: none;width: 100%">Examine</a>
                     </div>
                     <div class="col-md-2" style="padding-right: 0.5%;padding-left: 0.5%">
                         <a href="recite/" role="button" class="btn btn-outline-light  rounded btn-lg" style="text-transform: none;width: 100%">Define Words</a>
                     </div>
                     <div class="col-md-2" style="padding-right: 0.5%;padding-left: 0.5%">
-                        <a href="manage/" role="button" class="btn btn-outline-light  rounded btn-lg" style="text-transform: none;width: 100%">Manage Books</a>
+                        <a href="manage/" role="button" class="btn btn-outline-light  rounded btn-lg" style="text-transform: none;width: 100%">Manage</a>
                     </div>
                   </div>
               {% endif %}
