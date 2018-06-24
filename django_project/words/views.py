@@ -1,8 +1,7 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
 from .models import get_all_books, get_book_used, UserBook, UserRecitedBookWords, \
-    UserWordsPlan, get_recited_words_list, get_review_words_list, recite_one_word
-from words import models
+    UserWordsPlan, get_recited_words_list, get_review_words_list, recite_one_word, \
+    get_exam_words, UserReviewRecord, UserReciteRecord, save_an_exam_record
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
@@ -56,16 +55,17 @@ def review(request, user_name):
     message = {'user_name': user_name}
     user = User.objects.get(username=user_name)
     plan = UserWordsPlan.objects.get(user=user)
+
     if request.method == 'GET':
-        if 'words_review_list' in request.session:
-            if request.session['seq_review_now'] == plan.recite_words_day:
+        if 'words_review_list' in request.session:  # 已经加载复习单词列表
+            if request.session['seq_review_now'] == plan.recite_words_day:  # 复习完毕
                 return redirect('words:finish_review', user_name)
-            elif request.session['seq_review_now'] == len(request.session['words_review_list']):
+            elif request.session['seq_review_now'] == len(request.session['words_review_list']):    # 复习完毕（可复习单词量少于计划）
                 return redirect('words:finish_review', user_name)
-            elif 'is_review_next' in request.session and request.session['is_review_next']:
+            elif 'is_review_next' in request.session and request.session['is_review_next']:     # 复习过程中下一个单词请求
                 request.session['seq_review_now'] = request.session['seq_review_now'] + 1
                 request.session['is_review_next'] = False
-        else:
+        else:      # 还未加载复习单词列表
             request.session['words_review_list'] = get_review_words_list(user_name, plan.recite_words_day)
             request.session['seq_review_now'] = 1
 
@@ -73,7 +73,7 @@ def review(request, user_name):
         message['now_word'] = now_word
         message['can_show_content'] = False
         return render(request, 'words/review.html', message)
-
+    # TODO  exam words number
     elif request.method == 'POST':
         now_word = request.session['words_review_list'][request.session['seq_review_now'] - 1]
         message['now_word'] = now_word
@@ -81,15 +81,13 @@ def review(request, user_name):
         if request.POST['if_remember'] == 'I know it':
             pass
         elif request.POST['if_remember'] == "I don't know it":
-            query_set = models.UserRecitedBookWords.objects.filter(user=user, word_id=now_word)
+            query_set = UserRecitedBookWords.objects.filter(user=user, word_id=now_word)
             if query_set.exists():
                 query_set.delete()
         return render(request, 'words/review.html', message)
 
 
-@login_required
-def examine(request, user_name):
-    pass
+
 
 
 @login_required
@@ -152,10 +150,10 @@ def finish_recite(request, user_name):
     if request.method == 'GET':
         user = User.objects.get(username=user_name)
         date = timezone.now().date()
-        if models.UserReciteRecord.objects.filter(user=user, date=date).exists():
+        if UserReciteRecord.objects.filter(user=user, date=date).exists():
             return render(request, 'words/finish_recite.html', message)
         else:
-            item = models.UserReciteRecord(user=user, date=date)
+            item = UserReciteRecord(user=user, date=date)
             item.save()
         return render(request, 'words/finish_recite.html', message)
     elif request.method == 'POST':
@@ -167,15 +165,14 @@ def finish_recite(request, user_name):
 
 
 def finish_review(request, user_name):
-    message = {'user_name': user_name,
-               }
+    message = {'user_name': user_name}
     if request.method == 'GET':
         user = User.objects.get(username=user_name)
         date = timezone.now().date()
-        if models.UserReviewRecord.objects.filter(user=user, date=date).exists():
+        if UserReviewRecord.objects.filter(user=user, date=date).exists():
             return render(request, 'words/finish_review.html', message)
         else:
-            item = models.UserReviewRecord(user=user, date=date)
+            item = UserReviewRecord(user=user, date=date)
             item.save()
         return render(request, 'words/finish_review.html', message)
     elif request.method == 'POST':
@@ -186,5 +183,65 @@ def finish_review(request, user_name):
             return redirect('users:index')
 
 
-def finish_exam(request, user_name):
-    pass
+def finish_examine(request, user_name):
+    message = {'user_name': user_name, "exam_info": request.session['exam_info']}
+    if request.method == 'GET':
+        return render(request, 'words/finish_examine.html', message)
+    elif request.method == 'POST':
+        if request.POST['try_more'] == 'Sure':
+            del request.session['exam_words']
+            del request.session['in_examining']
+            del request.session['seq_now']
+            return redirect('words:examine', user_name)
+        elif request.POST['try_more'] == 'Review the exam':
+            request.session['review'] = True
+            request.session['in_examining'] = False
+            return redirect('words:examine', user_name)
+        else:
+            request.session['review'] = False
+            request.session['in_examining'] = False
+            return redirect('users:index')
+
+
+@login_required
+def examine(request, user_name):
+    message = {'user_name': user_name}
+    user = User.objects.get(username=user_name)
+    book = UserBook.objects.filter(user=user, is_use=True).get().book_id
+    plan = UserWordsPlan.objects.get(user=user)
+
+    if request.method == 'GET':
+        if 'in_examining' not in request.session:
+            request.session['exam_words'] = get_exam_words(plan.examine_words, book)
+            request.session['seq_now'] = 0
+            request.session['in_examining'] = True  # 正在考试
+            message['exam_words'] = request.session['exam_words']
+            message['in_examining'] = True
+            message['seq_now'] = 0
+            return render(request, 'words/examine.html', message)
+        elif request.session['in_examining']:      # 还在考试（考虑到用户中途退出）
+            print(request.session['in_examining'])
+            message['exam_words'] = request.session['exam_words']
+            message['in_examining'] = True
+            message['seq_now'] = request.session['seq_now']
+            return render(request, 'words/examine.html', message)
+        else:                                       # 考完了
+            if 'review' in request.session and request.session['review']:  # 考完后回顾
+                message['exam_words'] = request.session['exam_words']
+                message['in_examining'] = False
+                message['seq_now'] = 0
+                return render(request, 'words/examine.html', message)
+            else:
+                return redirect('words:finish_examine', user_name=user_name)
+
+    elif request.method == 'POST':
+        right_count = 0
+        question_count = 0
+        for word in request.session['exam_words']:
+            question_count = question_count + 1
+            if request.POST[word['word']+'_if_remember'] == 'true':
+                right_count = right_count + 1
+        save_an_exam_record(user_name=user_name, question_num=question_count, right_num=right_count)
+        request.session['in_examine'] = False   # 宣布考完试
+        request.session['exam_info'] = {'question_count': question_count, 'right_count': right_count}
+        return redirect('words:finish_examine', user_name)

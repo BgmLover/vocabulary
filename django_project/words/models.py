@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 import random
 
 
@@ -69,6 +70,7 @@ class UserWordsPlan(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     recite_words_day = models.IntegerField(default=20)
     review_words_day = models.IntegerField(default=10)
+    examine_words = models.IntegerField(default=20)
 
 
 def get_one_unknown_word(user_name, book_name):
@@ -92,15 +94,6 @@ def process_word(word, seq):
                 'example_sentence': word.example_sentence.split('<br>'),
                 'seq': seq}
     return res_word
-
-
-def get_one_known_word(user_name, book_name):
-    user = User.objects.get(username=user_name)
-    recited_set = UserRecitedBookWords.objects.filter(user=user)
-    size = recited_set.count()
-    index = random.randrange(size)
-    word = recited_set[index]
-    return word
 
 
 def get_recited_words_list(user_name, book, size):
@@ -184,11 +177,20 @@ def get_book_used(user_name):
 def get_exam_words(size, book_name):
     words_list = []
     words_set = Words.objects.filter(book_id=book_name)
+    total_size = words_set.count()
     count = 0
-    while count <= size:
-        random_index = random.randint(0, size - 1)
+    while count < size:
+        random_index = random.randint(0, total_size - 1)
         random_word = process_word(words_set[random_index], count)
         if random_word not in words_list:
             count = count + 1
             words_list.append(random_word)
     return words_list
+
+
+def save_an_exam_record(user_name, question_num, right_num, note=''):
+    user = User.objects.get(username=user_name)
+    item = UserExamRecord(user=user, question_num=question_num, right_num=right_num, note=note)
+    item.date = timezone.now()
+    item.save()
+

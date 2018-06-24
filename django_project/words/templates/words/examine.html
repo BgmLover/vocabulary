@@ -1,10 +1,79 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Title</title>
-</head>
-<body>
+{% extends 'users/base.html' %}
+{% load static %}
 
-</body>
-</html>
+{% block body %}
+    <!-- Intro Header -->
+    <header class="masthead">
+      <div class="intro-body">
+        <div class="container">
+          <div id="carouselExams" class="carousel slide" data-ride="carousel" data-interval="false">
+            <form action="/{{ user_name }}/examine/" method="post" class="row">
+              <div class="carousel-inner">
+                {% for word in exam_words %}
+                  <div class="carousel-item {% ifequal word.seq seq_now %}active{% endifequal %}">
+                    <div class="card bg-dark col-sm-8 offset-sm-2">
+                      <div class="card-header text-left">
+                        <strong class="display-4 ">{{ word.word }}</strong> &nbsp;
+                        <small >英:{{ word.phonetic_symbol_e }}</small>
+                        <audio id="player_e" src={{ word.pronunciation_e }} ></audio>
+                        <img  class="btn" onclick="document.getElementById('player_e').play()"  src={% static 'img/player.png' %}>
+                        <small >美:{{ word.phonetic_symbol_a }}</small>
+                        <audio id="player_a" src={{ word.pronunciation_a }} ></audio>
+                        <img  class="btn" onclick="document.getElementById('player_a').play()"  src={% static 'img/player.png' %}>
+                      </div>
+                      {% if not in_examining %}
+                        <div class="card-body " id="word_content" >
+                          {% for meaning in word.meanings %}
+                            <div class="card-text text-left">{{ meaning }}</div>
+                          {% endfor %}
+                          <br>
+                          {% for sentence in word.example_sentence %}
+                            <div class="card-text text-left">{{ sentence }}</div>
+                          {% endfor %}
+                        </div>
+                      {% endif %}
+                      {% if in_examining %}
+                        <div class="card-footer row">
+                          {% csrf_token %}
+                            <div class="col-3">
+                              <input class="form-check-input" type="radio" name="{{ word.word }}_if_remember" id="{{ word.word }}_radio_1"  value="true">
+                              <label class="form-check-label btn btn-default" for="{{ word.word }}_radio_1">
+                                I know it !
+                              </label>
+                            </div>
+                            <div class="col-6 offset-sm-2">
+                              <input class="form-check-input" type="radio" name="{{ word.word }}_if_remember" id="{{ word.word }}_radio_2"  value="false" checked>
+                              <label class="form-check-label btn btn-default" for="{{ word.word }}_radio_2">
+                                I don't know it !
+                              </label>
+                            </div>
+                      </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                {% endfor %}
+                {% if in_examining %}
+                  <div class="row">
+                      <input type="submit" class="btn btn-default col-1 offset-8" name="submit" value="Submit">
+                  </div>
+                {% else %}
+                  <div class="row">
+                    <a href="/{{ user_name }}/finish_examine/" class="btn btn-default col-1 offset-8" name="submit"> Return </a>
+                  </div>
+                {% endif %}
+              </div><br>
+            </form>
+            <a class="carousel-control-prev" href="#carouselExams" role="button" data-slide="prev">
+              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+              <span class="sr-only">Previous</span>
+            </a>
+            <a class="carousel-control-next" href="#carouselExams" role="button" data-slide="next">
+              <span class="carousel-control-next-icon" aria-hidden="true"></span>
+              <span class="sr-only">Next</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+{% endblock %}
