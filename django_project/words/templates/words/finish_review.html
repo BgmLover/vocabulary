@@ -9,20 +9,20 @@
         <div class="collapse navbar-collapse" id="navbarResponsive">
           <ul class="navbar-nav ml-auto">
             <li class="nav-item">
-              <a class="nav-link js-scroll-trigger" href="#about">About</a>
+                 <a class="nav-link js-scroll-trigger" href="#about">About</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link js-scroll-trigger" href="#download">Download</a>
+                <a class="nav-link js-scroll-trigger" href="#download">Download</a>
             </li>
             <li class="nav-item " >
-              <a class="nav-link js-scroll-trigger" href="#contact" style="margin-right: 2em">Contact</a>
+                <a class="nav-link js-scroll-trigger" href="#contact" style="margin-right: 2em">Contact</a>
             </li>
-              <li class="nav-item " >
-                <a class="nav-link js-scroll-trigger" href="#" style="text-transform:none"> {{user_name }}</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link js-scroll-trigger" href={% url 'users:index' %}>Log OUT</a>
-              </li>
+                <li class="nav-item " >
+                    <a class="nav-link js-scroll-trigger" href="#" style="text-transform:none"> {{user_name }}</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link js-scroll-trigger" href={% url 'users:index' %}>Log OUT</a>
+                </li>
           </ul>
         </div>
       </div>
@@ -32,50 +32,15 @@
     <header class="masthead">
       <div class="intro-body">
         <div class="container">
-          <div class="card bg-dark">
-            <h3 class="card-header " style="text-transform: capitalize">Manage your books</h3>
-            <div class="card-body">
-              <form  method="post" action="/{{ user_name }}/manage/" >
-                {% csrf_token %}
-                <div class="row">
-                  <div class="card-text col-3 text-left">&nbsp;&nbsp;Recite words per day</div>
-                  <input class="col-1" type="number" name="recite_word_day" min="1" value={{ recite_word_day }}>
-                  <div class="card-text col-3 offset-1 text-left">&nbsp;&nbsp;Review words per day</div>
-                  <input class="col-1 " type="number" name="review_word_day" min="0" value={{ review_word_day }}>
-                  <input class="btn-default rounded col-1 offset-sm-1" type="submit" value="Change" role="button">
-                </div>
-                <div class="row">
-                  <div class="col-7 card-title  " style="text-transform: capitalize">
-                    <div class="text-lg-left">&nbsp; &nbsp;The book in use:&nbsp;  &nbsp; &nbsp;
-                      <span class="badge-info ">{{ choose_book }}</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="row">
-                  {% for book in books%}
-                    <div class="card bg-dark col-2 mx-4" >
-                      <img class="card-img-top" src={% static 'img/books/'%}{{ book }}.png  alt={{ book }}  >
-                      <div class="progress">
-                        <div class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
-                      </div>
-                      <div class="card-body " style="padding-left: 0;padding-right: 0">
-                        <div class="form-check">
-                          {% ifequal book choose_book %}
-                              <input class="form-check-input" checked type="radio" name="choose_book" id={{ book }} value={{ book }}>
-                          {% else %}
-                              <input class="form-check-input" type="radio" name="choose_book" id={{ book }} value={{ book }}>
-                          {% endifequal %}
-                          <label class="form-check-label small " for={{ book }}>
-                            {{ book }}
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  {% endfor %}
-                </div>
-              </form>
-            </div>
-          </div>
+          <h1 class="brand-heading">Good job</h1>
+            <p class="intro-text">You have finished your review plan today
+                <br>Try more words?</p>
+            <form method="post" action="/{{ user_name }}/finish_review/">
+              {% csrf_token %}
+              <input type="submit" class="btn-default btn-lg mx-2" value="Sure" name="try_more">
+              <input type="submit" class="btn-default btn-lg mx-2" value="No thanks" name="try_more">
+            </form>
+
         </div>
       </div>
     </header>

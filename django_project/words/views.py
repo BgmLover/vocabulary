@@ -1,9 +1,11 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from .models import get_all_books, get_book_used, UserBook, get_one_unknown_word, UserWordsPlan, get_words_list
+from .models import get_all_books, get_book_used, UserBook, UserRecitedBookWords, \
+    UserWordsPlan, get_recited_words_list, get_review_words_list, recite_one_word
 from words import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.contrib.auth.decorators import login_required
 
 
 def get_recite_next_word(request, user_name):
@@ -11,6 +13,12 @@ def get_recite_next_word(request, user_name):
     return redirect('words:recite', user_name)
 
 
+def get_review_next_word(request, user_name):
+    request.session['is_review_next'] = True
+    return redirect('words:review', user_name)
+
+
+@login_required
 def recite(request, user_name):
     message = {'user_name': user_name}
     user = User.objects.get(username=user_name)
@@ -18,32 +26,78 @@ def recite(request, user_name):
     plan = UserWordsPlan.objects.get(user=user)
     if request.method == 'GET':
         if 'words_recite_list' in request.session:
-            if request.session['seq_now'] == plan.recite_words_day:
+            if request.session['seq_recite_now'] == plan.recite_words_day:
                 return redirect('words:finish_recite', user_name)
             elif 'is_recite_next' in request.session and request.session['is_recite_next']:
-                request.session['seq_now'] = request.session['seq_now'] + 1
+                request.session['seq_recite_now'] = request.session['seq_recite_now'] + 1
                 request.session['is_recite_next'] = False
         else:
-            request.session['words_recite_list'] = get_words_list(user_name, book, plan.recite_words_day)
-            request.session['seq_now'] = 1
-        now_word = request.session['words_recite_list'][request.session['seq_now'] - 1]
+            request.session['words_recite_list'] = get_recited_words_list(user_name, book, plan.recite_words_day)
+            request.session['seq_recite_now'] = 1
+        now_word = request.session['words_recite_list'][request.session['seq_recite_now'] - 1]
         message['now_word'] = now_word
         message['can_show_content'] = False
         return render(request, 'words/recite.html', message)
 
     elif request.method == 'POST':
-        now_word = request.session['words_recite_list'][request.session['seq_now'] - 1]
+        now_word = request.session['words_recite_list'][request.session['seq_recite_now'] - 1]
         message['now_word'] = now_word
         message['can_show_content'] = True
         if request.POST['if_remember'] == 'I know it':
-            pass  # save to the database  TODO
+            pass
         elif request.POST['if_remember'] == "I don't know it":
-            pass  # TODO
-        else:
-            return HttpResponse('invalid post')
+            pass
+        recite_one_word(user_name, now_word['word'])
         return render(request, 'words/recite.html', message)
 
 
+@login_required
+def review(request, user_name):
+    message = {'user_name': user_name}
+    user = User.objects.get(username=user_name)
+    plan = UserWordsPlan.objects.get(user=user)
+    if request.method == 'GET':
+        if 'words_review_list' in request.session:
+            if request.session['seq_review_now'] == plan.recite_words_day:
+                return redirect('words:finish_review', user_name)
+            elif request.session['seq_review_now'] == len(request.session['words_review_list']):
+                return redirect('words:finish_review', user_name)
+            elif 'is_review_next' in request.session and request.session['is_review_next']:
+                request.session['seq_review_now'] = request.session['seq_review_now'] + 1
+                request.session['is_review_next'] = False
+        else:
+            request.session['words_review_list'] = get_review_words_list(user_name, plan.recite_words_day)
+            request.session['seq_review_now'] = 1
+
+        now_word = request.session['words_review_list'][request.session['seq_review_now'] - 1]
+        message['now_word'] = now_word
+        message['can_show_content'] = False
+        return render(request, 'words/review.html', message)
+
+    elif request.method == 'POST':
+        now_word = request.session['words_review_list'][request.session['seq_review_now'] - 1]
+        message['now_word'] = now_word
+        message['can_show_content'] = True
+        if request.POST['if_remember'] == 'I know it':
+            pass
+        elif request.POST['if_remember'] == "I don't know it":
+            query_set = models.UserRecitedBookWords.objects.filter(user=user, word_id=now_word)
+            if query_set.exists():
+                query_set.delete()
+        return render(request, 'words/review.html', message)
+
+
+@login_required
+def examine(request, user_name):
+    pass
+
+
+@login_required
+def define_words(request, user_name):
+    pass
+
+
+@login_required
 def manage(request, user_name):
     books = get_all_books()
     user = User.objects.get(username=user_name)
@@ -67,6 +121,9 @@ def manage(request, user_name):
             item = query_used_set.get()
             item.is_use = False
             item.save()
+            #
+            # if item.book_id != choose_book:
+            #     del request.session['words_recite_list']
         query_set = UserBook.objects.filter(user=user, book_id=choose_book)
         if query_set.exists():
             item = query_set.get()
@@ -94,9 +151,9 @@ def finish_recite(request, user_name):
                }
     if request.method == 'GET':
         user = User.objects.get(username=user_name)
-        date = timezone.now()
+        date = timezone.now().date()
         if models.UserReciteRecord.objects.filter(user=user, date=date).exists():
-            return render(request, 'words/finish_recite.html')
+            return render(request, 'words/finish_recite.html', message)
         else:
             item = models.UserReciteRecord(user=user, date=date)
             item.save()
@@ -108,3 +165,26 @@ def finish_recite(request, user_name):
         else:
             return redirect('users:index')
 
+
+def finish_review(request, user_name):
+    message = {'user_name': user_name,
+               }
+    if request.method == 'GET':
+        user = User.objects.get(username=user_name)
+        date = timezone.now().date()
+        if models.UserReviewRecord.objects.filter(user=user, date=date).exists():
+            return render(request, 'words/finish_review.html', message)
+        else:
+            item = models.UserReviewRecord(user=user, date=date)
+            item.save()
+        return render(request, 'words/finish_review.html', message)
+    elif request.method == 'POST':
+        if request.POST['try_more'] == 'Sure':
+            del request.session['words_review_list']
+            return redirect('words:review', user_name)
+        else:
+            return redirect('users:index')
+
+
+def finish_exam(request, user_name):
+    pass

@@ -52,6 +52,14 @@ class UserReviewRecord(models.Model):
     date = models.DateTimeField()
 
 
+class UserExamRecord(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    date = models.DateTimeField()
+    question_num = models.IntegerField()
+    right_num = models.IntegerField()
+    note = models.CharField(max_length=200,default='')
+
+
 class UserRecitedDefinedWords(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     word = models.ForeignKey('words.UserDefinedWords', on_delete=models.CASCADE)
@@ -95,19 +103,48 @@ def get_one_known_word(user_name, book_name):
     return word
 
 
-def get_words_list(user_name, book, size):
+def get_recited_words_list(user_name, book, size):
     user = User.objects.get(username=user_name)
     word_set = Words.objects.filter(book=book)
     total_size = word_set.count()
     recited_set = UserRecitedBookWords.objects.filter(user=user)
     count = 0
     words_list = []
-    while count <= size:
-        random_index = random.randint(0, total_size)
-        word = word_set[random_index]
-        if word not in recited_set.filter(user=user):
+    if size < total_size:
+        while count <= size:
+            random_index = random.randint(0, total_size-1)
+            word = word_set[random_index]
+            if word not in recited_set.filter(user=user):
+                count = count + 1
+                words_list.append(process_word(word, count))
+    else:
+        seq = 0
+        for word in word_set:
+            seq = seq + 1
+            words_list.append(process_word(word, seq))
+    return words_list
+
+
+def get_review_words_list(user_name, size):
+    user = User.objects.get(username=user_name)
+    word_set = UserRecitedBookWords.objects.filter(user=user)
+    total_size = word_set.count()
+    count = 0
+    words_list = []
+    if size < total_size:
+        while count <= size:
+            random_index = random.randint(0, total_size-1)
+            word = word_set[random_index]
+            print(random_index)
             count = count + 1
-            words_list.append(process_word(word, count))
+            print(word.word_id)
+            tmp_word = Words.objects.get(word=word.word_id)
+            words_list.append(process_word(tmp_word, count))
+    else:
+        seq = 0
+        for word in word_set:
+            seq = seq + 1
+            words_list.append(process_word(word, seq))
     return words_list
 
 
@@ -116,7 +153,7 @@ def recite_one_word(user_name, word):
     user = User.objects.get(username=user)
     query_set = UserRecitedBookWords.objects.filter(user=user, word=word)
     if not query_set.exists():
-        item = UserRecitedBookWords(user=user_name, word=word)
+        item = UserRecitedBookWords(user=user, word_id=word)
         item.save()
 
 
@@ -142,3 +179,16 @@ def get_book_used(user_name):
         return query_set.get().book.book_name
     else:
         return ''
+
+
+def get_exam_words(size, book_name):
+    words_list = []
+    words_set = Words.objects.filter(book_id=book_name)
+    count = 0
+    while count <= size:
+        random_index = random.randint(0, size - 1)
+        random_word = process_word(words_set[random_index], count)
+        if random_word not in words_list:
+            count = count + 1
+            words_list.append(random_word)
+    return words_list

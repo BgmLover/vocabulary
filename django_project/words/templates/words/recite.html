@@ -55,15 +55,19 @@
             </div>
             <div class="card-footer ">
               {% if can_show_content %}
-                <button class="btn-default" data-toggle="collapse" data-target="#word_content">Show the content</button>
-                <a class="btn-default" href="/{{ user_name }}/get_recite_next/">
-                  next
-                </a>
+                <div class="row">
+                  <div class=" col-4">
+                    <button class="btn btn-default btn-lg" data-toggle="collapse" data-target="#word_content" ">Show the content</button>
+                  </div>
+                  <div class=" col-4 offset-4">
+                    <a class="btn btn-default btn-lg " href="/{{ user_name }}/get_recite_next/" >next</a>
+                  </div>
+                </div>
               {% else %}
                 <form action="/{{ user_name }}/recite/" method="post" class="row">
                 {% csrf_token %}
-                  <input class="btn-outline-light col-4" type="submit" name="if_remember"  value="I know it">
-                  <input class="btn-outline-light col-4 offset-sm-4" type="submit" name="if_remember"  value="I don't know it">
+                  <input class="btn-default col-4 btn-lg" type="submit" name="if_remember"  value="I know it">
+                  <input class="btn-default col-4 btn-lg offset-sm-4" type="submit" name="if_remember"  value="I don't know it">
                 </form>
               {% endif %}
             </div>

@@ -9,20 +9,20 @@
         <div class="collapse navbar-collapse" id="navbarResponsive">
           <ul class="navbar-nav ml-auto">
             <li class="nav-item">
-              <a class="nav-link js-scroll-trigger" href="#about">About</a>
+                 <a class="nav-link js-scroll-trigger" href="#about">About</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link js-scroll-trigger" href="#download">Download</a>
+                <a class="nav-link js-scroll-trigger" href="#download">Download</a>
             </li>
             <li class="nav-item " >
-              <a class="nav-link js-scroll-trigger" href="#contact" style="margin-right: 2em">Contact</a>
+                <a class="nav-link js-scroll-trigger" href="#contact" style="margin-right: 2em">Contact</a>
             </li>
-              <li class="nav-item " >
-                <a class="nav-link js-scroll-trigger" href="#" style="text-transform:none"> {{user_name }}</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link js-scroll-trigger" href={% url 'users:index' %}>Log OUT</a>
-              </li>
+                <li class="nav-item " >
+                    <a class="nav-link js-scroll-trigger" href="#" style="text-transform:none"> {{user_name }}</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link js-scroll-trigger" href={% url 'users:index' %}>Log OUT</a>
+                </li>
           </ul>
         </div>
       </div>
@@ -32,48 +32,44 @@
     <header class="masthead">
       <div class="intro-body">
         <div class="container">
-          <div class="card bg-dark">
-            <h3 class="card-header " style="text-transform: capitalize">Manage your books</h3>
-            <div class="card-body">
-              <form  method="post" action="/{{ user_name }}/manage/" >
-                {% csrf_token %}
+          <div class="card bg-dark col-sm-8 offset-sm-2">
+            <div class="card-header text-left">
+              <strong class="display-4 ">{{ now_word.word }}</strong> &nbsp;
+              <small >英:{{ now_word.phonetic_symbol_e }}</small>
+              <audio id="player_e" src={{ now_word.pronunciation_e }} ></audio>
+              <img  class="btn" onclick="document.getElementById('player_e').play()"  src={% static 'img/player.png' %}>
+              </img>
+              <small >美:{{ now_word.phonetic_symbol_a }}</small>
+              <audio id="player_a" src={{ now_word.pronunciation_a }} ></audio>
+              <img  class="btn" onclick="document.getElementById('player_a').play()"  src={% static 'img/player.png' %}>
+              </img>
+            </div>
+            <div class="card-body collapse" id="word_content" >
+              {% for meaning in now_word.meanings %}
+                <div class="card-text text-left">{{ meaning }}</div>
+              {% endfor %}
+              <br>
+              {% for sentence in now_word.example_sentence %}
+                <div class="card-text text-left">{{ sentence }}</div>
+              {% endfor %}
+            </div>
+            <div class="card-footer ">
+              {% if can_show_content %}
                 <div class="row">
-                  <div class="card-text col-3 text-left">&nbsp;&nbsp;Recite words per day</div>
-                  <input class="col-1" type="number" name="recite_word_day" min="1" value={{ recite_word_day }}>
-                  <div class="card-text col-3 offset-1 text-left">&nbsp;&nbsp;Review words per day</div>
-                  <input class="col-1 " type="number" name="review_word_day" min="0" value={{ review_word_day }}>
-                  <input class="btn-default rounded col-1 offset-sm-1" type="submit" value="Change" role="button">
-                </div>
-                <div class="row">
-                  <div class="col-7 card-title  " style="text-transform: capitalize">
-                    <div class="text-lg-left">&nbsp; &nbsp;The book in use:&nbsp;  &nbsp; &nbsp;
-                      <span class="badge-info ">{{ choose_book }}</span>
-                    </div>
+                  <div class=" col-4">
+                    <button class="btn btn-default btn-lg" data-toggle="collapse" data-target="#word_content" ">Show the content</button>
+                  </div>
+                  <div class=" col-4 offset-4">
+                    <a class="btn btn-default btn-lg " href="/{{ user_name }}/get_review_next/" >next</a>
                   </div>
                 </div>
-                <div class="row">
-                  {% for book in books%}
-                    <div class="card bg-dark col-2 mx-4" >
-                      <img class="card-img-top" src={% static 'img/books/'%}{{ book }}.png  alt={{ book }}  >
-                      <div class="progress">
-                        <div class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
-                      </div>
-                      <div class="card-body " style="padding-left: 0;padding-right: 0">
-                        <div class="form-check">
-                          {% ifequal book choose_book %}
-                              <input class="form-check-input" checked type="radio" name="choose_book" id={{ book }} value={{ book }}>
-                          {% else %}
-                              <input class="form-check-input" type="radio" name="choose_book" id={{ book }} value={{ book }}>
-                          {% endifequal %}
-                          <label class="form-check-label small " for={{ book }}>
-                            {{ book }}
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  {% endfor %}
-                </div>
-              </form>
+              {% else %}
+                <form action="/{{ user_name }}/review/" method="post" class="row">
+                {% csrf_token %}
+                  <input class="btn-default col-4 btn-lg" type="submit" name="if_remember"  value="I know it">
+                  <input class="btn-default col-4 btn-lg offset-sm-4" type="submit" name="if_remember"  value="I don't know it">
+                </form>
+              {% endif %}
             </div>
           </div>
         </div>
