@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from words.models import get_one_unknown_word, get_one_known_word
 
+
 class Command(BaseCommand):
     help = 'Please add the book_name'
 

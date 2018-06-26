@@ -17,6 +17,7 @@ class Words(models.Model):
 
 class Books(models.Model):
     book_name = models.CharField(max_length=100, primary_key=True)
+    total_words = models.IntegerField(default=0)
 
 
 class UserBook(models.Model):
@@ -33,7 +34,7 @@ class UserDefinedWords(models.Model):
     phonetic_symbol_a = models.CharField(max_length=100, null=True)
     pronunciation_e = models.CharField(max_length=1000, null=True)
     pronunciation_a = models.CharField(max_length=1000, null=True)
-    meanings = models.CharField(max_length=1000)
+    meanings = models.CharField(max_length=1000, null=True)
     example_sentence = models.CharField(max_length=1000, null=True)
 
 
@@ -143,8 +144,12 @@ def get_review_words_list(user_name, size):
 
 def recite_one_word(user_name, word):
     user = User.objects.get(username=user_name)
-    user = User.objects.get(username=user)
     query_set = UserRecitedBookWords.objects.filter(user=user, word=word)
+    book = Words.objects.get(word=word).book
+
+    item = UserBook.objects.get(user=user, book_id=book)
+    item.progress = (item.progress * book.total_words + 1) / book.total_words
+    item.save()
     if not query_set.exists():
         item = UserRecitedBookWords(user=user, word_id=word)
         item.save()
@@ -163,6 +168,17 @@ def get_all_books():
     for book in books:
         books_list.append(book.book_name)
     return books_list
+
+
+def get_books_progress(user_name):
+    user = User.objects.get(username=user_name)
+    user_books = UserBook.objects.filter(user=user)
+    info = []
+    for user_book in user_books:
+        item = {'book_name': user_book.book_id,
+                'progress': user_book.progress*100}
+        info.append(item)
+    return info
 
 
 def get_book_used(user_name):
@@ -194,3 +210,18 @@ def save_an_exam_record(user_name, question_num, right_num, note=''):
     item.date = timezone.now()
     item.save()
 
+
+def get_defined_words(user_name):
+    user = User.objects.get(username=user_name)
+    words = UserDefinedWords.objects.filter(user=user)
+    result = []
+    if words.exists():
+        seq = 1
+        for word in words:
+            item = {'word': word.word,
+                    'meanings': word.meanings,
+                    'sentence': word.example_sentence,
+                    'id': seq
+                    }
+            result.append(item)
+    return result

@@ -1,11 +1,11 @@
 from django.shortcuts import render, redirect
 from .models import get_all_books, get_book_used, UserBook, UserRecitedBookWords, \
     UserWordsPlan, get_recited_words_list, get_review_words_list, recite_one_word, \
-    get_exam_words, UserReviewRecord, UserReciteRecord, save_an_exam_record
+    get_exam_words, UserReviewRecord, UserReciteRecord, save_an_exam_record,get_books_progress,get_defined_words,UserDefinedWords
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
-
+from django.http import HttpResponse
 
 def get_recite_next_word(request, user_name):
     request.session['is_recite_next'] = True
@@ -19,7 +19,7 @@ def get_review_next_word(request, user_name):
 
 @login_required
 def recite(request, user_name):
-    message = {'user_name': user_name}
+    message = {'logged_in': True, 'user_name': user_name}
     user = User.objects.get(username=user_name)
     book = UserBook.objects.filter(user=user, is_use=True).get().book
     plan = UserWordsPlan.objects.get(user=user)
@@ -52,7 +52,7 @@ def recite(request, user_name):
 
 @login_required
 def review(request, user_name):
-    message = {'user_name': user_name}
+    message = {'logged_in': True, 'user_name': user_name}
     user = User.objects.get(username=user_name)
     plan = UserWordsPlan.objects.get(user=user)
 
@@ -73,7 +73,6 @@ def review(request, user_name):
         message['now_word'] = now_word
         message['can_show_content'] = False
         return render(request, 'words/review.html', message)
-    # TODO  exam words number
     elif request.method == 'POST':
         now_word = request.session['words_review_list'][request.session['seq_review_now'] - 1]
         message['now_word'] = now_word
@@ -87,23 +86,26 @@ def review(request, user_name):
         return render(request, 'words/review.html', message)
 
 
-
-
-
 @login_required
 def define_words(request, user_name):
-    pass
+    message = {'logged_in': True,
+               'user_name': user_name,
+               'defined_words': get_defined_words(user_name)
+               }
+    return render(request, 'words/define_words.html', message)
 
 
 @login_required
 def manage(request, user_name):
-    books = get_all_books()
+    book_info = get_books_progress(user_name)
     user = User.objects.get(username=user_name)
     plan = UserWordsPlan.objects.get(user=user)
-    message = {'user_name': user_name,
-               'books': books,
+    message = {'logged_in': True,
+               'user_name': user_name,
+               'book_info': book_info,
                'recite_word_day': plan.recite_words_day,
-               'review_word_day': plan.review_words_day}
+               'review_word_day': plan.review_words_day,
+               'examine_word': plan.examine_words}
 
     if request.method == 'GET':
         book_used = get_book_used(user_name)
@@ -145,7 +147,8 @@ def manage(request, user_name):
 
 
 def finish_recite(request, user_name):
-    message = {'user_name': user_name,
+    message = {'logged_in': True,
+               'user_name': user_name,
                }
     if request.method == 'GET':
         user = User.objects.get(username=user_name)
@@ -165,7 +168,8 @@ def finish_recite(request, user_name):
 
 
 def finish_review(request, user_name):
-    message = {'user_name': user_name}
+    message = {'logged_in': True,
+               'user_name': user_name}
     if request.method == 'GET':
         user = User.objects.get(username=user_name)
         date = timezone.now().date()
@@ -184,7 +188,8 @@ def finish_review(request, user_name):
 
 
 def finish_examine(request, user_name):
-    message = {'user_name': user_name, "exam_info": request.session['exam_info']}
+    message = {'logged_in': True,
+               'user_name': user_name, "exam_info": request.session['exam_info']}
     if request.method == 'GET':
         return render(request, 'words/finish_examine.html', message)
     elif request.method == 'POST':
@@ -205,7 +210,8 @@ def finish_examine(request, user_name):
 
 @login_required
 def examine(request, user_name):
-    message = {'user_name': user_name}
+    message = {'logged_in': True,
+               'user_name': user_name}
     user = User.objects.get(username=user_name)
     book = UserBook.objects.filter(user=user, is_use=True).get().book_id
     plan = UserWordsPlan.objects.get(user=user)

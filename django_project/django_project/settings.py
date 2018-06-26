@@ -125,5 +125,6 @@ LOGIN_URL = '/users/sign_in'
 
 STATIC_URL = '/static/'
 
+ALLOWED_HOSTS = ['*']
 
 STATICFILES_DIRS = ['static']

@@ -1,3 +1,8 @@
+#words_table{
+  overflow-y: auto;
+  height: 200px;
+}
+
 body {
   font-family: 'Lora', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   position: relative;
@@ -278,4 +283,24 @@ img::selection {
 
 img::-moz-selection {
   background: transparent;
+}
+
+
+
+
+@media (max-width:576px){
+  /*.container{*/
+    /*padding: 0;*/
+  /*}*/
+  /*.card.bg-dark{*/
+    /*padding: 0 50px;*/
+  /*}*/
+  .carousel-control-prev{
+    /*bottom: -300px;*/
+    left: -15px;
+  }
+  .carousel-control-next{
+    /*bottom: -300px;*/
+    right: -15px;
+  }
 }

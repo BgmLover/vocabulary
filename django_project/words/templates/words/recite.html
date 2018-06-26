@@ -8,15 +8,23 @@
         <div class="container">
           <div class="card bg-dark col-sm-8 offset-sm-2">
             <div class="card-header text-left">
-              <strong class="display-4 ">{{ now_word.word }}</strong> &nbsp;
-              <small >英:{{ now_word.phonetic_symbol_e }}</small>
-              <audio id="player_e" src={{ now_word.pronunciation_e }} ></audio>
-              <img  class="btn" onclick="document.getElementById('player_e').play()"  src={% static 'img/player.png' %}>
-              </img>
-              <small >美:{{ now_word.phonetic_symbol_a }}</small>
-              <audio id="player_a" src={{ now_word.pronunciation_a }} ></audio>
-              <img  class="btn" onclick="document.getElementById('player_a').play()"  src={% static 'img/player.png' %}>
-              </img>
+              <div class="row">
+                <strong class="display-4 col-12">{{ now_word.word }}</strong>
+              </div>
+              <div class="row align-left">
+                <div class="col-sm-4">
+                  <small >英:{{ now_word.phonetic_symbol_e }}</small>
+                  <audio id="player_e" src={{ now_word.pronunciation_e }} ></audio>
+                  <img  class="btn" onclick="document.getElementById('player_e').play()"  src={% static 'img/player.png' %}>
+                  </img>
+                </div>
+                <div class="col-sm-4">
+                  <small >美:{{ now_word.phonetic_symbol_a }}</small>
+                  <audio id="player_a" src={{ now_word.pronunciation_a }} ></audio>
+                  <img  class="btn" onclick="document.getElementById('player_a').play()"  src={% static 'img/player.png' %}>
+                  </img>
+                </div>
+              </div>
             </div>
             <div class="card-body collapse" id="word_content" >
               {% for meaning in now_word.meanings %}
@@ -29,19 +37,19 @@
             </div>
             <div class="card-footer ">
               {% if can_show_content %}
-                <div class="row">
-                  <div class=" col-4">
-                    <button class="btn btn-default btn-lg" data-toggle="collapse" data-target="#word_content" ">Show the content</button>
+                <div class="row no-padding">
+                  <div class="col-4">
+                    <button class="btn btn-default btn-lg" data-toggle="collapse" data-target="#word_content" >Show the content</button>
                   </div>
-                  <div class=" col-4 offset-4">
+                  <div class=" col-3 offset-5">
                     <a class="btn btn-default btn-lg " href="/{{ user_name }}/get_recite_next/" >next</a>
                   </div>
                 </div>
               {% else %}
                 <form action="/{{ user_name }}/recite/" method="post" class="row">
                 {% csrf_token %}
-                  <input class="btn-default col-4 btn-lg" type="submit" name="if_remember"  value="I know it">
-                  <input class="btn-default col-4 btn-lg offset-sm-4" type="submit" name="if_remember"  value="I don't know it">
+                  <input class="btn-default col-sm-4 btn-lg" type="submit" name="if_remember"  value="I know it">
+                  <input class="btn-default col-sm-4 btn-lg offset-sm-4" type="submit" name="if_remember"  value="I don't know it">
                 </form>
               {% endif %}
             </div>

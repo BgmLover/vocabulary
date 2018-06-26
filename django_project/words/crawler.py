@@ -108,7 +108,8 @@ def save_words(book_name):
                 book_id=book_name,
                 meanings=meanings
             )
-
+            if Words.objects.filter(word=word).exists():
+                continue
             new_word.save()
         except IntegrityError:
             raise IntegrityError

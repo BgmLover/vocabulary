@@ -10,4 +10,5 @@ urlpatterns = [
     path(r'sign_in/', views.sign_in, name='sign_in'),
     path(r'sign_out/', views.sign_out, name='sign_out'),
     path(r'users/sign_in/', views.sign_in, name='re_sign_in'),
-    path(r'users/logout/', views.sign_out, name='sign_out')]
+    path(r'users/logout/', views.sign_out, name='sign_out'),
+]

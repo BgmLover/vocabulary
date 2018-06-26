@@ -5,7 +5,6 @@ from .models import check_type
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django import db
-from django.apps import apps
 from words.models import UserBook, Books, UserWordsPlan
 
 
@@ -23,6 +22,7 @@ def index_login(request, user_name):
 
 
 def sign_up(request):
+    message = {'logged_in': True}
     if request.method == 'GET':
         return render(request, 'users/sign_up.html')
     if request.method == 'POST':

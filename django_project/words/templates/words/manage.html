@@ -12,35 +12,45 @@
               <form  method="post" action="/{{ user_name }}/manage/" >
                 {% csrf_token %}
                 <div class="row">
-                  <div class="card-text col-3 text-left">&nbsp;&nbsp;Recite words per day</div>
-                  <input class="col-1" type="number" name="recite_word_day" min="1" value={{ recite_word_day }}>
-                  <div class="card-text col-3 offset-1 text-left">&nbsp;&nbsp;Review words per day</div>
-                  <input class="col-1 " type="number" name="review_word_day" min="0" value={{ review_word_day }}>
-                  <input class="btn-default rounded col-1 offset-sm-1" type="submit" value="Change" role="button">
+                  <input class="btn-default rounded col-sm-2 offset-sm-9 offset-7 col-4" type="submit" value="Change" role="button">
+                </div><br>
+                <div class="row">
+                  <div class="card-text  text-left col-9 col-sm-10">
+                    Recite words per day :</div>
+                  <input class="col-sm-1 col-2 btn-default rounded" type="number" name="recite_word_day" min="1" value={{ recite_word_day }}>
                 </div>
                 <div class="row">
-                  <div class="col-7 card-title  " style="text-transform: capitalize">
-                    <div class="text-lg-left">&nbsp; &nbsp;The book in use:&nbsp;  &nbsp; &nbsp;
-                      <span class="badge-info ">{{ choose_book }}</span>
-                    </div>
+                  <div class="card-text  text-left col-9 col-sm-10">
+                    Review words per day :</div>
+                  <input  type="number" name="review_word_day" min="0" class="col-sm-1 col-2 btn-default rounded" value={{ review_word_day }}>
+                </div>
+                <div class="row">
+                  <div class="card-text  text-left col-9 col-sm-10">
+                    Word numbers per exam :</div>
+                  <input  type="number" name="question_num_exam" min="0" class="col-sm-1 col-2 btn-default rounded" value={{ examine_word }}>
+                </div><br>
+                <div class="row">
+                  <div class=" card-title text-left col-12" style="text-transform: capitalize">
+                    The book in use:&nbsp;&nbsp;&nbsp;
+                    <span class="btn-default rounded">&nbsp;{{ choose_book }}&nbsp;</span>
                   </div>
                 </div>
                 <div class="row">
-                  {% for book in books%}
-                    <div class="card bg-dark col-2 mx-4" >
-                      <img class="card-img-top" src={% static 'img/books/'%}{{ book }}.png  alt={{ book }}  >
+                  {% for book in book_info%}
+                    <div class="card bg-dark col-sm-2 col-5 mx-2" >
+                      <img class="card-img-top" src={% static 'img/books/'%}{{ book.book_name }}.png  alt={{ book.book_name }}  >
                       <div class="progress">
-                        <div class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
+                        <div class="progress-bar" role="progressbar" style="width: {{ book.progress }}%;" aria-valuenow="{{ book.progress }}" aria-valuemin="0" aria-valuemax="100">{{ book.progress }}%</div>
                       </div>
                       <div class="card-body " style="padding-left: 0;padding-right: 0">
                         <div class="form-check">
-                          {% ifequal book choose_book %}
+                          {% ifequal book.book_name choose_book %}
                               <input class="form-check-input" checked type="radio" name="choose_book" id={{ book }} value={{ book }}>
                           {% else %}
                               <input class="form-check-input" type="radio" name="choose_book" id={{ book }} value={{ book }}>
                           {% endifequal %}
-                          <label class="form-check-label small " for={{ book }}>
-                            {{ book }}
+                          <label class="form-check-label small " for={{ book.book_name }}>
+                            {{ book.book_name }}
                           </label>
                         </div>
                       </div>
