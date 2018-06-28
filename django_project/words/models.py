@@ -98,18 +98,19 @@ def get_recited_words_list(user_name, book, size):
     recited_set = UserRecitedBookWords.objects.filter(user=user)
     count = 0
     words_list = []
-    if size < total_size:
-        while count <= size:
-            random_index = random.randint(0, total_size-1)
-            word = word_set[random_index]
-            if word not in recited_set.filter(user=user):
-                count = count + 1
-                words_list.append(process_word(word, count))
-    else:
-        seq = 0
-        for word in word_set:
-            seq = seq + 1
-            words_list.append(process_word(word, seq))
+    if word_set.exists():
+        if size < total_size:
+            while count <= size:
+                random_index = random.randint(0, total_size-1)
+                word = word_set[random_index]
+                if word not in recited_set.filter(user=user):
+                    count = count + 1
+                    words_list.append(process_word(word, count))
+        else:
+            seq = 0
+            for word in word_set:
+                seq = seq + 1
+                words_list.append(process_word(word, seq))
     return words_list
 
 
@@ -119,21 +120,22 @@ def get_review_words_list(user_name, size):
     total_size = word_set.count()
     count = 0
     words_list = []
-    if size < total_size:
-        while count <= size:
-            random_index = random.randint(0, total_size-1)
-            word = word_set[random_index]
-            print(random_index)
-            count = count + 1
-            print(word.word_id)
-            tmp_word = Words.objects.get(word=word.word_id)
-            words_list.append(process_word(tmp_word, count))
-    else:
-        seq = 0
-        for word in word_set:
-            seq = seq + 1
-            tmp_word = Words.objects.get(word=word.word_id)
-            words_list.append(process_word(tmp_word, seq))
+    if word_set.exists():
+        if size < total_size:
+            while count <= size:
+                random_index = random.randint(0, total_size-1)
+                word = word_set[random_index]
+                print(random_index)
+                count = count + 1
+                print(word.word_id)
+                tmp_word = Words.objects.get(word=word.word_id)
+                words_list.append(process_word(tmp_word, count))
+        else:
+            seq = 0
+            for word in word_set:
+                seq = seq + 1
+                tmp_word = Words.objects.get(word=word.word_id)
+                words_list.append(process_word(tmp_word, seq))
     return words_list
 
 
