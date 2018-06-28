@@ -1,11 +1,13 @@
 from django.shortcuts import render, redirect
 from .models import get_all_books, get_book_used, UserBook, UserRecitedBookWords, \
     UserWordsPlan, get_recited_words_list, get_review_words_list, recite_one_word, \
-    get_exam_words, UserReviewRecord, UserReciteRecord, save_an_exam_record,get_books_progress,get_defined_words,UserDefinedWords
+    get_exam_words, UserReviewRecord, UserReciteRecord, save_an_exam_record,get_books_progress,\
+    get_defined_words, UserDefinedWords, save_user_defined_word
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
+
 
 def get_recite_next_word(request, user_name):
     request.session['is_recite_next'] = True
@@ -17,9 +19,14 @@ def get_review_next_word(request, user_name):
     return redirect('words:review', user_name)
 
 
+def collect_words(request, user_name):
+    now_word = request.session['words_recite_list'][request.session['seq_recite_now'] - 1]
+    save_user_defined_word(user_name=user_name,word_name=now_word['word'])
+    return redirect('words:recite', user_name)
+
 @login_required
 def recite(request, user_name):
-    message = {'logged_in': True, 'user_name': user_name}
+    message = {'logged_in': True, 'user_name': user_name, 'collect': False}
     user = User.objects.get(username=user_name)
     book = UserBook.objects.filter(user=user, is_use=True).get().book
     plan = UserWordsPlan.objects.get(user=user)
@@ -34,12 +41,16 @@ def recite(request, user_name):
             request.session['words_recite_list'] = get_recited_words_list(user_name, book, plan.recite_words_day)
             request.session['seq_recite_now'] = 1
         now_word = request.session['words_recite_list'][request.session['seq_recite_now'] - 1]
+        if UserDefinedWords.objects.filter(user=user, word_id=now_word['word']).exists():
+            message['collect'] = True
         message['now_word'] = now_word
         message['can_show_content'] = False
         return render(request, 'words/recite.html', message)
 
     elif request.method == 'POST':
         now_word = request.session['words_recite_list'][request.session['seq_recite_now'] - 1]
+        if UserDefinedWords.objects.filter(user=user, word_id=now_word['word']).exists():
+            message['collect'] = True
         message['now_word'] = now_word
         message['can_show_content'] = True
         if request.POST['if_remember'] == 'I know it':
@@ -121,16 +132,13 @@ def manage(request, user_name):
             item = query_used_set.get()
             item.is_use = False
             item.save()
-            #
-            # if item.book_id != choose_book:
-            #     del request.session['words_recite_list']
         query_set = UserBook.objects.filter(user=user, book_id=choose_book)
         if query_set.exists():
             item = query_set.get()
             item.is_use = True
             item.save()
         else:
-            item = UserBook(user_id=user, book_id=choose_book, is_use=True)
+            item = UserBook(user=user, book_id=choose_book, is_use=True)
             item.save()
         change_flag = False
         if plan.recite_words_day != request.POST['recite_word_day']:

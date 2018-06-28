@@ -9,7 +9,16 @@
           <div class="card bg-dark col-sm-8 offset-sm-2">
             <div class="card-header text-left">
               <div class="row">
-                <strong class="display-4 col-12">{{ now_word.word }}</strong>
+                <strong class="display-4 col-11">{{ now_word.word }}</strong>
+                {% if not collect %}
+                  <a class="col-1" href="/{{ user_name }}/collect_words/">
+                    <img src={% static 'img/collect_1.png' %}>
+                  </a>
+                {% else %}
+                  <a class="col-1" >
+                    <img src={% static 'img/collect_2.png' %}>
+                  </a>
+                {% endif %}
               </div>
               <div class="row align-left">
                 <div class="col-sm-4">

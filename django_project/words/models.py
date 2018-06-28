@@ -29,13 +29,7 @@ class UserBook(models.Model):
 
 class UserDefinedWords(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    word = models.CharField(max_length=30, unique=True)
-    phonetic_symbol_e = models.CharField(max_length=100, null=True)
-    phonetic_symbol_a = models.CharField(max_length=100, null=True)
-    pronunciation_e = models.CharField(max_length=1000, null=True)
-    pronunciation_a = models.CharField(max_length=1000, null=True)
-    meanings = models.CharField(max_length=1000, null=True)
-    example_sentence = models.CharField(max_length=1000, null=True)
+    word = models.ForeignKey(Words, on_delete=models.CASCADE)
 
 
 class UserRecitedBookWords(models.Model):
@@ -138,7 +132,8 @@ def get_review_words_list(user_name, size):
         seq = 0
         for word in word_set:
             seq = seq + 1
-            words_list.append(process_word(word, seq))
+            tmp_word = Words.objects.get(word=word.word_id)
+            words_list.append(process_word(tmp_word, seq))
     return words_list
 
 
@@ -218,10 +213,19 @@ def get_defined_words(user_name):
     if words.exists():
         seq = 1
         for word in words:
-            item = {'word': word.word,
-                    'meanings': word.meanings,
-                    'sentence': word.example_sentence,
+            item = {'word': word.word.word,
+                    'meanings': word.word.meanings,
+                    'phonetic_symbol_e': word.word.phonetic_symbol_e,
+                    'phonetic_symbol_a': word.word.phonetic_symbol_a,
+                    'sentence': word.word.example_sentence,
                     'id': seq
                     }
             result.append(item)
     return result
+
+
+def save_user_defined_word(user_name, word_name):
+    user = User.objects.get(username=user_name)
+    word = Words.objects.get(word=word_name)
+    item = UserDefinedWords(user=user, word=word)
+    item.save()

@@ -45,9 +45,9 @@
                       <div class="card-body " style="padding-left: 0;padding-right: 0">
                         <div class="form-check">
                           {% ifequal book.book_name choose_book %}
-                              <input class="form-check-input" checked type="radio" name="choose_book" id={{ book }} value={{ book }}>
+                              <input class="form-check-input" checked type="radio" name="choose_book" id={{ book.book_name }} value={{ book.book_name }}>
                           {% else %}
-                              <input class="form-check-input" type="radio" name="choose_book" id={{ book }} value={{ book }}>
+                              <input class="form-check-input" type="radio" name="choose_book" id={{ book.book_name }} value={{ book.book_name }}>
                           {% endifequal %}
                           <label class="form-check-label small " for={{ book.book_name }}>
                             {{ book.book_name }}
